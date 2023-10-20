@@ -1,7 +1,12 @@
+"""
+This script assumes access to ResNet50featu
+"""
+
 import numpy as np
 import torch
 
 # Use ResNet50 features of iwildcame
+
 # Run this script from zh-gpu1 at this path:
 # /mnt/hdd/pillutla/data/iwildcam/resnet50_features/orm_processing
 

@@ -210,4 +210,3 @@ dependencies:
   - zstd=1.5.5=hc292b87_0
   - pip:
       - pyqt5-sip==12.11.0
-prefix: /home/ronak/miniconda3/envs/dro
