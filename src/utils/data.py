@@ -39,16 +39,25 @@ def load_dataset(dataset="yacht", test_size=0.2, data_path="data/"):
             data[:, : data.shape[1] - 1],
             data[:, data.shape[1] - 1],
         )
-    elif dataset == "acsincome":
-        raise NotImplementedError
-    elif dataset == "diabetes":
-        raise NotImplementedError
+    elif dataset in ["acsincome", "diabetes"]:
+        dir_name = dataset
+        X_train = np.load(os.path.join(data_path, dir_name, "X_train.npy"))
+        y_train = np.load(os.path.join(data_path, dir_name, "y_train.npy"))
+        X_test = np.load(os.path.join(data_path, dir_name, "X_test.npy"))
+        y_test = np.load(os.path.join(data_path, dir_name, "y_test.npy"))
+
+        X_train = torch.tensor(X_train, dtype=torch.float64)
+        y_train = torch.tensor(y_train, dtype=torch.float64)
+        X_test = torch.tensor(X_test, dtype=torch.float64)
+        y_test = torch.tensor(y_test, dtype=torch.float64)
+
+        return X_train, y_train, X_test, y_test
     elif dataset == "amazon":
         raise NotImplementedError
     elif dataset == "iwildcam_std":
         raise NotImplementedError
     else:
-        raise Exception(f"Not known dataset: {dataset}!")
+        raise Exception(f"Unknown dataset: {dataset}!")
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=42
