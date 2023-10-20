@@ -3,6 +3,7 @@ data/*
 !data/.gitkeep
 .vscode
 scripts/data
+!data/iwildcam
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
