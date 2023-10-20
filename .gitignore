@@ -3,6 +3,8 @@ data/*
 !data/.gitkeep
 .vscode
 scripts/data
+scripts/bert_amazon_finetuned.pt
+scripts/training_stats_bert_amazon_finetuned.p
 !data/iwildcam
 
 # Byte-compiled / optimized / DLL files

@@ -1,23 +1,19 @@
-"""
-This script assumes access to ResNet50featu
-"""
-
 import numpy as np
 import torch
 
-# Use ResNet50 features of iwildcame
-
-# Run this script from zh-gpu1 at this path:
-# /mnt/hdd/pillutla/data/iwildcam/resnet50_features/orm_processing
-
-# Rename the output folder `new` to 'iwildcam2' in the root of this repo to run
-
-z = np.load(f"../train_features.npy")
-y = np.load(f"../train_labels.npy")
-zv = np.load(f"../val_features.npy")
-yv = np.load(f"../val_labels.npy")
-zt = np.load(f"../test_features.npy")
-yt = np.load(f"../test_labels.npy")
+raw_dir = "{your directory here}"
+data_dir = "data/iwildcam"
+try:
+    z = np.load(f"{raw_dir}/train_features.npy")
+    y = np.load(f"{raw_dir}/train_labels.npy")
+    zv = np.load(f"{raw_dir}/val_features.npy")
+    yv = np.load(f"{raw_dir}/val_labels.npy")
+    zt = np.load(f"{raw_dir}/test_features.npy")
+    yt = np.load(f"{raw_dir}/test_labels.npy")
+except FileNotFoundError:
+    raise FileNotFoundError(
+        f"This script assumes access to ResNet50 features on top of the 2020 iWildCam dataset to exist in {raw_dir}! Either place them in this directory, or use the already processed features in '/data/iwildcam'."
+    )
 
 # find the most frequently occurring classes in train
 uy, c = np.unique(y, return_counts=True)
@@ -108,6 +104,6 @@ z4 = z1 / np.linalg.norm(z1, axis=1)[:, None]
 z4v = z1v / np.linalg.norm(z1v, axis=1)[:, None]
 z4t = z1t / np.linalg.norm(z1t, axis=1)[:, None]
 
-np.save(f"new/X_train_2.npy", z4)
-np.save(f"new/X_validation_2.npy", z4v)
-np.save(f"new/X_test_2.npy", z4t)
+# np.save(f"new/X_train_2.npy", z4)
+# np.save(f"new/X_validation_2.npy", z4v)
+# np.save(f"new/X_test_2.npy", z4t)
