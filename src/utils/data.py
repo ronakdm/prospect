@@ -39,12 +39,17 @@ def load_dataset(dataset="yacht", test_size=0.2, data_path="data/"):
             data[:, : data.shape[1] - 1],
             data[:, data.shape[1] - 1],
         )
-    elif dataset in ["acsincome", "diabetes"]:
+    elif dataset in ["acsincome", "diabetes", "amazon", "iwildcam"]:
         dir_name = dataset
-        X_train = np.load(os.path.join(data_path, dir_name, "X_train.npy"))
-        y_train = np.load(os.path.join(data_path, dir_name, "y_train.npy"))
-        X_test = np.load(os.path.join(data_path, dir_name, "X_test.npy"))
-        y_test = np.load(os.path.join(data_path, dir_name, "y_test.npy"))
+        try:
+            X_train = np.load(os.path.join(data_path, dir_name, "X_train.npy"))
+            y_train = np.load(os.path.join(data_path, dir_name, "y_train.npy"))
+            X_test = np.load(os.path.join(data_path, dir_name, "X_test.npy"))
+            y_test = np.load(os.path.join(data_path, dir_name, "y_test.npy"))
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Could not find data files in 'data/{dataset}'. Did you run 'scripts/prepare_{dataset}'?"
+            )
 
         X_train = torch.tensor(X_train, dtype=torch.float64)
         y_train = torch.tensor(y_train, dtype=torch.float64)
