@@ -1,0 +1,19 @@
+name: dro
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.8.12
+  - numpy=1.21.2
+  - numpy-base=1.21.2
+  - pytorch=1.11.0
+  - joblib=1.1.0
+  - scipy=1.7.1
+  - matplotlib=3.4.3
+  - seaborn=0.11.2
+  - numba=0.55.1
+  - tqdm=4.65.0
+  - scikit-learn=1.0.2
+  - openpyxl=3.0.9
+  - xlrd=2.0.1
+  - jupyter
