@@ -47,7 +47,7 @@ def load_dataset(dataset="yacht", test_size=0.2, data_path="data/"):
             y_test = np.load(os.path.join(data_path, dataset, "y_test.npy"))
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"Could not find data files in 'data/{dataset}'. Did you run 'scripts/prepare_{dataset}'?"
+                f"Could not find data files in 'data/{dataset}'. Did you run 'scripts/download_{dataset}'?"
             )
 
         X_train = torch.tensor(X_train, dtype=torch.float64)

@@ -23,3 +23,16 @@ The environment `dro` contains the necessary packages and Python version (3.10).
 ```
 pip3 install torch --index-url https://download.pytorch.org/whl/cu118
 ```
+
+## Datasets
+
+Of the nine datasets used in the paper, five (`yacht`, `energy`, `concrete`, `kin8nm`, `power`) are downloaded automatically when the are loaded (see `tutorial.ipynb`). The `iwildcam` dataset requires a larger amount of processing to reproduce fully, and the preprocessed version of this dataset is already included in the `data` folder. The fairness benchmark datasets `acsincome` and `diabetes` can be prepared by running:
+```
+scripts/download_acsincome.py
+scripts/download_diabetes.py
+```
+Finally, the `amazon` dataset requires both downloading raw data and fine-tuning a BERT model to produce frozen feature representations. This can be done by running through the entirety of the `download_amazon.ipynb` notebook.
+
+## Tutorial
+
+After completing all of the above steps, see `tutorial.ipynb` for a walkthrough of the code structure and how to reproduce experimental results.
