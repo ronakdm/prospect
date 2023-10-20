@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from sklearn.preprocessing import StandardScaler
 
 raw_dir = "{your directory here}"
 data_dir = "data/iwildcam"
@@ -64,21 +65,17 @@ def mysample(y, min_per_class, max_per_class, total, seed=0):
 idxs = mysample(y, 100, 1000, 20000, seed=0)
 z1 = z[idxs]
 y1 = y[idxs]
-torch.save(z1, f"new/train_embeddings.pt")
-np.save(f"new/y_train.npy", y1)
+torch.save(z1, f"{data_dir}/train_embeddings.pt")
 
 idxs = mysample(yv, 50, 500, 5000, seed=1)
 z1 = zv[idxs]
 y1 = yv[idxs]
-torch.save(z1, f"new/validation_embeddings.pt")
-np.save(f"new/y_validation.npy", y1)
-
+torch.save(z1, f"{data_dir}/validation_embeddings.pt")
 
 idxs = mysample(yt, 50, 500, 5000, seed=2)
 z1 = zt[idxs]
 y1 = yt[idxs]
-torch.save(z1, f"new/test_embeddings.pt")
-np.save(f"new/y_test.npy", y1)
+torch.save(z1, f"{data_dir}/test_embeddings.pt")
 
 
 # Run PCA:
@@ -100,10 +97,21 @@ z1v = pca.transform(zv)[:, :cutoff]
 z1t = pca.transform(zt)[:, :cutoff]
 
 # normalize each datapoint to norm 1
-z4 = z1 / np.linalg.norm(z1, axis=1)[:, None]
-z4v = z1v / np.linalg.norm(z1v, axis=1)[:, None]
-z4t = z1t / np.linalg.norm(z1t, axis=1)[:, None]
+X_train = z1 / np.linalg.norm(z1, axis=1)[:, None]
+X_validation = z1v / np.linalg.norm(z1v, axis=1)[:, None]
+X_test = z1t / np.linalg.norm(z1t, axis=1)[:, None]
+y_train = y1
+y_validation = yv
+y_test = yt
 
-# np.save(f"new/X_train_2.npy", z4)
-# np.save(f"new/X_validation_2.npy", z4v)
-# np.save(f"new/X_test_2.npy", z4t)
+
+# Standardize inputs.
+scaler = StandardScaler().fit(X_train)
+X_train = scaler.transform(X_train)
+X_validation = scaler.transform(X_validation)
+X_test = scaler.transform(X_test)
+
+
+np.save(f"{data_dir}/y_train.npy", y_train)
+np.save(f"{data_dir}/y_validation.npy", y_validation)
+np.save(f"{data_dir}/y_test.npy", y_test)
