@@ -12,7 +12,9 @@ $$
 \min_{w \in \mathbb{R}^d} \max_{q \in \mathcal{P}(\sigma)} q^\top \ell(w) + \frac{\mu}{2} \Vert w\Vert\_2^2 - \nu D_{\chi^2}(q\Vert \mathbf{1}_n/n),
 $$
 
-in which $\ell_i(w)$ denotes the loss of a model with weights $w \in \mathbb{R}^d$ on data instances $i$, $D_{\chi^2}(q\Vert \mathbf{1}_n/n) = n\Vert q - \mathbf{1}_n/n \Vert\_2^2$ is the ${\chi}^2$-divergence between some distribution $q$ and the uniform distribution. The set $\mathcal{P}(\sigma)$ is an *uncertainty set* of possible distributions $q$ that could be shifts of the original training distribution. It is specified by some non-negative vector $\sigma \in \mathbb{R}^n$ with $0 \leq \sigma_1 \leq \ldots \leq \sigma_n$ and $\sum_{i=1}^n \sigma_i = 1$. This formulation reduces to empirical risk minimization (ERM) when $\sigma_i = 1/n$ for all $i$, but contains other common risk-sensitive formulations such as the conditional value-at-risk (CVaR) or the extremile loss.
+in which $\ell_i(w)$ denotes the loss of a model with weights $w \in \mathbb{R}^d$ on data instances $i$, 
+<!-- $D_{\chi^2}(q\Vert \mathbf{1}_n/n) = n\Vert q - \mathbf{1}_n/n \Vert\_2^2$ is the ${\chi}^2$-divergence between some distribution $q$ and the uniform distribution.  -->
+The set $\mathcal{P}(\sigma)$ is an *uncertainty set* of possible distributions $q$ that could be shifts of the original training distribution. It is specified by some non-negative vector $\sigma \in \mathbb{R}^n$ with $0 \leq \sigma_1 \leq \ldots \leq \sigma_n$ and $\sum_{i=1}^n \sigma_i = 1$. This formulation reduces to empirical risk minimization (ERM) when $\sigma_i = 1/n$ for all $i$, but contains other common risk-sensitive formulations such as the conditional value-at-risk (CVaR) or the extremile loss.
 
 ## Dependencies
 
