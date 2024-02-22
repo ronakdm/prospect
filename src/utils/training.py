@@ -28,7 +28,6 @@ def train_model(optimizer, val_objective, n_epochs):
     penalty = optimizer.objective.penalty
     init_loss = metrics[0]["train_loss"] + penalty  # makes this positive
 
-    iterates = []
     for epoch in tqdm(range(n_epochs)):
         tic = time.time()
         optimizer.start_epoch()
