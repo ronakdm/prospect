@@ -1,4 +1,13 @@
 # Data files
+results/yacht/*/lr_*
+results/energy/*/lr_*
+results/concrete/*/lr_*
+results/kin8nm/*/lr_*
+results/power/*/lr_*
+results/acsincome/*/lr_*
+results/diabetes/*/lr_*
+results/iwildcam/*/lr_*
+results/amazon/*/lr_*
 data/*
 !data/.gitkeep
 .vscode

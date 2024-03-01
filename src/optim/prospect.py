@@ -129,7 +129,6 @@ class ProspectMoreau(Optimizer):
         epoch_len=None,
         shift_cost=1.0,
         penalty="l2",
-        device="cuda:0",
     ):
         super(ProspectMoreau, self).__init__()
         self.objective = objective
@@ -152,7 +151,6 @@ class ProspectMoreau(Optimizer):
         self.rng_table = np.random.RandomState(seed_table)
         self.shift_cost = n * shift_cost
         self.penalty = penalty
-        self.device = device
 
         # Generate loss and gradient tables.
         self.losses = self.objective.get_indiv_loss(self.weights)
@@ -169,10 +167,10 @@ class ProspectMoreau(Optimizer):
                 + self.objective.l2_reg * self.weights / n
             )
 
-        self.grad_table = self.grad_table.to(device)
+        self.grad_table = self.grad_table
 
         self.running_subgrad = torch.matmul(
-            self.grad_table.T, self.lam.to(device)
+            self.grad_table.T, self.lam
         ).cpu()
 
         if epoch_len:
@@ -202,7 +200,7 @@ class ProspectMoreau(Optimizer):
         self.weights = self.objective.get_indiv_prox_loss(v_weights, self.lr, i)
 
         mor_grad_j = self.objective.get_indiv_mor_grad(v_table, self.lr, j)
-        self.grad_table[j] = mor_grad_j.reshape(1, -1).to(self.device)
+        self.grad_table[j] = mor_grad_j.reshape(1, -1)
 
         self.losses[j] = loss_j
         self.lam = get_smooth_weights(
@@ -210,7 +208,7 @@ class ProspectMoreau(Optimizer):
         )
 
         self.running_subgrad = torch.matmul(
-            self.lam.to(self.device), self.grad_table
+            self.lam, self.grad_table
         ).cpu()
 
     def end_epoch(self):

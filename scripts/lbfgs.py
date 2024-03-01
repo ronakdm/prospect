@@ -17,8 +17,7 @@ from src.utils.training import get_objective, OptimizationError
 from src.utils.io import var_to_str, get_path
 
 L2_REG = 1.0
-SM_COEF = 1.0
-SMOOTHING="l2"
+SHIFT_COST = 1.0
 
 # Create parser.
 parser = argparse.ArgumentParser()
@@ -74,9 +73,8 @@ elif dataset == "diabetes":
 model_cfg = {
     "objective": args.objective,
     "l2_reg": L2_REG,
-    "sm_coef": SM_COEF,
+    "shift_cost": SHIFT_COST,
     "loss": loss,
-    "smoothing": SMOOTHING,
     "n_class": n_class
 }
 

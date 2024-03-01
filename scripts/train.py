@@ -9,8 +9,7 @@ import sys
 import argparse
 
 L2_REG = 1.0
-SM_COEF = 1.0
-SMOOTHING = "l2"
+SHIFT_COST = 1.0
 LRS = [1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3, 0.01, 0.03, 0.1, 0.3]
 
 # Create parser.
@@ -66,11 +65,6 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument(
-    "--loss",
-    type=str,
-    default="squared_error",
-)
-parser.add_argument(
     "--n_epochs",
     type=int,
     default=64,
@@ -80,21 +74,7 @@ parser.add_argument(
     type=int,
     default=None,
 )
-parser.add_argument(
-    "--l2_reg", type=str, required=True, choices=["none", "xsmall", "small", "medium", "large"]
-)
-parser.add_argument("--device", type=str, default="0", choices=["0", "1", "2", "3"])
-parser.add_argument("--smoothing", type=str, default="l2", choices=["l2", "neg_entropy"])
-parser.add_argument(
-    "--sm_coef", type=str, required=True, choices=["xsmall", "small", "medium", "large"]
-)
-parser.add_argument(
-    "--seeds", type=str, required=True, choices=["0", "1", "2", "3", "5"]
-)
-parser.add_argument("--use_hyperparam", type=int, default=0)
 parser.add_argument("--parallel", type=int, default=1)
-parser.add_argument("--redo", type=int, default=0)
-parser.add_argument("--save_iters", type=int, default=0)
 parser.add_argument("--n_jobs", type=int, default=-2)
 args = parser.parse_args()
 
@@ -115,23 +95,19 @@ elif dataset == "diabetes":
 model_cfg = {
     "objective": args.objective,
     "l2_reg": L2_REG,
-    "sm_coef": SM_COEF,
+    "shift_cost": SHIFT_COST,
     "loss": loss,
-    "smoothing": SMOOTHING,
     "n_class": n_class
 }
 optim_cfg = {
     "optimizer": args.optimizer,
     "lr": LRS,
     "epoch_len": args.epoch_len,
-    "sm_coef": SM_COEF,
-    "smoothing": args.smoothing
+    "shift_cost": SHIFT_COST,
 }
 seeds = [1, 2]
 n_epochs = args.n_epochs
 parallel = bool(args.parallel)
-save_iters = bool(args.save_iters)
-redo = bool(args.redo)
 
 optim_cfgs = dict_to_list(optim_cfg)
 
@@ -164,9 +140,6 @@ def worker(optim):
             optim,
             seed,
             n_epochs,
-            device=args.device,
-            save_iters=save_iters,
-            redo=redo,
         )
         if code == FAIL_CODE:
             diverged = True

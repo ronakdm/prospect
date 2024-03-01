@@ -1,6 +1,7 @@
 import os
 import pickle
 import inspect
+import itertools
 
 def get_path(levels, out_path="results/"):
     path = out_path
@@ -60,3 +61,9 @@ def var_to_str(var):
     else:
         raise NotImplementedError
     return var_str
+
+def dict_to_list(d):
+    for key in d:
+        if not isinstance(d[key], list):
+            d[key] = [d[key]]
+    return [dict(zip(d, x)) for x in itertools.product(*d.values())]

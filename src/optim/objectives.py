@@ -76,11 +76,10 @@ class Objective:
         with torch.no_grad():
             sorted_losses = torch.sort(self.loss(w, self.X, self.y), stable=True)[0]
             n = self.n
-            if self.penalty:
+            if self.l2_reg:
                 sm_sigmas = get_smooth_weights_sorted(
                     sorted_losses, self.sigmas, self.shift_cost, self.penalty
                 )
-                # TODO: Change this for l2.
                 risk = torch.dot(
                     sm_sigmas, sorted_losses
                 ) - 0.5 * self.shift_cost * torch.sum((sm_sigmas - 1 / n) ** 2)
@@ -98,7 +97,7 @@ class Objective:
             X, y = self.X, self.y
             sigmas = self.sigmas
         sorted_losses = torch.sort(self.loss(w, X, y), stable=True)[0]
-        if self.penalty:
+        if self.l2_reg:
             with torch.no_grad():
                 sm_sigmas = get_smooth_weights_sorted(
                     sorted_losses, sigmas, self.shift_cost, self.penalty

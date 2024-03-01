@@ -33,8 +33,7 @@ class OptimizationError(RuntimeError):
 def train_model(optimizer, val_objective, n_epochs):
     epoch_len = optimizer.get_epoch_len()
     metrics = [compute_metrics(-1, optimizer, val_objective, 0.0)]
-    penalty = optimizer.objective.penalty
-    init_loss = metrics[0]["train_loss"] + penalty  # makes this positive
+    init_loss = metrics[0]["train_loss"]
 
     for epoch in tqdm(range(n_epochs)):
         tic = time.time()
@@ -46,7 +45,7 @@ def train_model(optimizer, val_objective, n_epochs):
 
         # Logging.
         metrics.append(compute_metrics(epoch, optimizer, val_objective, toc - tic))
-        if metrics[-1]["train_loss"] + penalty >= 1.5 * init_loss:
+        if metrics[-1]["train_loss"] >= 1.5 * init_loss:
             raise OptimizationError(
                 f"train loss 50% greater than inital loss! (epoch {epoch})"
             )
@@ -68,6 +67,7 @@ def get_optimizer(optim_cfg, objective, seed, device="cpu"):
 
     lrd = 0.5 if "lrd" not in optim_cfg.keys() else optim_cfg["lrd"]
     penalty = "l2"
+
     if name == "sgd":
         return StochasticSubgradientMethod(
             objective, lr=lr, seed=seed, epoch_len=epoch_len
