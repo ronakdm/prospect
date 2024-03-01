@@ -1,6 +1,6 @@
 
-tasks="10-19"
-objective="extremile"
+tasks="20-29"
+objective="esrm"
 dataset="concrete"
 
 python scripts/lbfgs.py --dataset $dataset --objective $objective
