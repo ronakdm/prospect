@@ -15,6 +15,7 @@ scripts/data
 scripts/bert_amazon_finetuned.pt
 scripts/training_stats_bert_amazon_finetuned.p
 !data/iwildcam
+!data/amazon
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
