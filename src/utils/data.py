@@ -51,10 +51,14 @@ def load_dataset(dataset="yacht", test_size=0.2, data_path="data/"):
             )
 
         X_train = torch.tensor(X_train, dtype=torch.float64)
-        y_train = torch.tensor(y_train, dtype=torch.float64)
         X_test = torch.tensor(X_test, dtype=torch.float64)
-        y_test = torch.tensor(y_test, dtype=torch.float64)
 
+        if dataset in ["amazon", "iwildcam"]:
+            y_train = torch.tensor(y_train).long()
+            y_test = torch.tensor(y_test).long()
+        else:
+            y_train = torch.tensor(y_train, dtype=torch.float64)
+            y_test = torch.tensor(y_test, dtype=torch.float64)
         return X_train, y_train, X_test, y_test
     elif dataset == "iwildcam":
         X_train = np.load(os.path.join(data_path, dataset, "X_train.npy"))

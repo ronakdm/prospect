@@ -22,6 +22,7 @@ from src.utils.training import (
     FAIL_CODE,
 )
 from src.utils.io import dict_to_list
+from src.utils.hyperparams import HYPERPARAM_LR
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser()
@@ -74,6 +75,11 @@ parser.add_argument(
     type=int,
     default=None,
 )
+parser.add_argument(
+    "--use_hyperparam",
+    type=int,
+    default=0,
+)
 parser.add_argument("--parallel", type=int, default=1)
 parser.add_argument("--n_jobs", type=int, default=-2)
 args = parser.parse_args()
@@ -99,9 +105,14 @@ model_cfg = {
     "loss": loss,
     "n_class": n_class
 }
+
+if args.use_hyperparam:
+    lrs = [HYPERPARAM_LR[args.optimizer][args.dataset][args.objective]]
+else:
+    lrs = LRS
 optim_cfg = {
     "optimizer": args.optimizer,
-    "lr": LRS,
+    "lr": lrs,
     "epoch_len": args.epoch_len,
     "shift_cost": SHIFT_COST,
 }
