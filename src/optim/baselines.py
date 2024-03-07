@@ -219,11 +219,11 @@ class SmoothedLSVRG(Optimizer):
         if self.step_no % n == 0:
             losses = self.objective.get_indiv_loss(self.weights, with_grad=False)
             sorted_losses, self.argsort = torch.sort(losses, stable=True)
-            with torch.no_grad():
-                self.sigmas = get_smooth_weights_sorted(
-                    sorted_losses, self.spectrum, self.smooth_coef, self.smoothing
-                )
-            self.subgrad_checkpt = self.objective.get_batch_subgrad(self.weights, include_reg=False)
+            self.sigmas = get_smooth_weights_sorted(
+                sorted_losses, self.spectrum, self.smooth_coef, self.smoothing
+            )
+            with torch.enable_grad():
+                self.subgrad_checkpt = self.objective.get_batch_subgrad(self.weights, include_reg=False)
             self.weights_checkpt = torch.clone(self.weights)
             self.nb_checkpoints += 1
 

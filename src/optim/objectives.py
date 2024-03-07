@@ -21,9 +21,11 @@ def binary_cross_entropy_loss(w, X, y):
     return torch.nn.functional.binary_cross_entropy_with_logits(
         logits, y, reduction="none"
     )
-
+ 
 def binary_cross_entropy_gradient(w, X, y):
-    raise NotImplementedError
+    logits = torch.matmul(X, w)
+    p = 1. / (1. + torch.exp(-logits))
+    return (p - y)[:, None] * X
 
 def multinomial_cross_entropy_loss(w, X, y, n_class):
     W = w.view(-1, n_class)
