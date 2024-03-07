@@ -1,5 +1,5 @@
 HYPERPARAM_LR = {
-    "lsaga_v3": {
+    "prospect": {
         "diabetes": {
             "superquantile": 3e-3,
             "extremile": 3e-3,
@@ -80,7 +80,7 @@ HYPERPARAM_LR = {
             "esrm": 0.01,
         },
     },
-    "slsvrg": {
+    "lsvrg": {
         "diabetes": {
             "superquantile": 1e-3,
             "extremile": 1e-3,
@@ -107,7 +107,7 @@ HYPERPARAM_LR = {
             "esrm": 0.1,
         },
     },
-    "saddlesaga_v2": {
+    "saddlesaga": {
         "iwildcam": {
             "superquantile": 0.003,
             "extremile": 0.003,
