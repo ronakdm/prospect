@@ -3,7 +3,7 @@ import numpy as np
 from src.optim.smoothing import get_smooth_weights
 from src.optim.baselines import Optimizer
 from numba import jit
-
+import warnings
 
 class Prospect(Optimizer):
     def __init__(
@@ -51,15 +51,10 @@ class Prospect(Optimizer):
         self.rho = self.lam.clone()
         real_l2_reg = self.objective.l2_reg / n
 
-        for i in range(n):
-            loss = self.objective.loss(
-                self.weights, self.objective.X[i, :], self.objective.y[i]
-            )
-            self.grad_table[i] = torch.autograd.grad(outputs=loss, inputs=self.weights)[
-                0
-            ]
-            if self.oracle_reg == "grad":
-                self.grad_table[i] = self.grad_table[i] + real_l2_reg * self.weights
+        if self.oracle_reg == "grad":
+            self.grad_table = self.objective.get_indiv_grad(self.weights) + real_l2_reg * self.weights[None, :]
+        else:
+            self.grad_table = self.objective.get_indiv_grad(self.weights)
         self.running_subgrad = torch.matmul(self.grad_table.T, self.rho)
 
         if epoch_len:
@@ -79,9 +74,8 @@ class Prospect(Optimizer):
         i = torch.tensor([self.rng_grad.randint(0, n)])
         x = self.objective.X[i]
         y = self.objective.y[i]
-        with torch.enable_grad():
-            loss = self.objective.loss(self.weights, x, y)
-            g = torch.autograd.grad(outputs=loss, inputs=self.weights)[0]
+        loss = self.objective.loss(self.weights, x, y)
+        g = self.objective.get_indiv_grad(self.weights, x, y).squeeze()
         if self.oracle_reg == "grad":
             g += real_l2_reg * self.weights
 
@@ -109,7 +103,7 @@ class Prospect(Optimizer):
         self.rho[i] = cur_lam
 
         # update table
-        self.grad_table[i] = g.reshape(1, -1)
+        self.grad_table[i] = g[None, :]
         self.running_subgrad += cur_lam * g - rho_old * g_old
 
     def end_epoch(self):
@@ -134,6 +128,8 @@ class ProspectMoreau(Optimizer):
         self.objective = objective
         self.lr = lr
         n, d = self.objective.n, self.objective.d
+        if self.objective.autodiff == False:
+            warnings.warn("ProspectMoreau does not currently have a non-autodiff implementation")
         if objective.n_class:
             self.weights = torch.zeros(
                 objective.n_class * d,

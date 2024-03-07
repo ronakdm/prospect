@@ -122,7 +122,7 @@ def get_optimizer(optim_cfg, objective, seed, device="cpu"):
         raise ValueError("Unreocgnized optimizer!")
 
 
-def get_objective(model_cfg, X, y, dataset=None):
+def get_objective(model_cfg, X, y, dataset=None, autodiff=True):
     name, l2_reg, loss, n_class, shift_cost = (
         model_cfg["objective"],
         model_cfg["l2_reg"],
@@ -162,6 +162,7 @@ def get_objective(model_cfg, X, y, dataset=None):
         dataset=dataset,
         shift_cost=shift_cost,
         penalty="l2",
+        autodiff=autodiff,
     )
 
 

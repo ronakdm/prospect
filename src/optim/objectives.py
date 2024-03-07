@@ -13,6 +13,8 @@ from src.optim.smoothing import get_smooth_weights, get_smooth_weights_sorted
 def squared_error_loss(w, X, y):
     return 0.5 * (y - torch.matmul(X, w)) ** 2
 
+def squared_error_gradient(w, X, y):
+    return (torch.matmul(X, w) - y)[:, None] * X
 
 def binary_cross_entropy_loss(w, X, y):
     logits = torch.matmul(X, w)
@@ -20,11 +22,22 @@ def binary_cross_entropy_loss(w, X, y):
         logits, y, reduction="none"
     )
 
+def binary_cross_entropy_gradient(w, X, y):
+    raise NotImplementedError
 
 def multinomial_cross_entropy_loss(w, X, y, n_class):
     W = w.view(-1, n_class)
     logits = torch.matmul(X, W)
     return torch.nn.functional.cross_entropy(logits, y, reduction="none")
+
+def multinomial_cross_entropy_gradient(w, X, y, n_class):
+    n = len(X)
+    W = w.view(-1, n_class)
+    logits = torch.matmul(X, W)
+    p = torch.softmax(logits, dim=1)
+    p[torch.arange(n), y] -= 1
+    scores = torch.bmm(X[:, :, None], p[:, None, :])
+    return scores.view(n, -1)
 
 
 def get_loss(name, n_class=None):
@@ -38,6 +51,16 @@ def get_loss(name, n_class=None):
         raise ValueError(
             f"Unrecognized loss '{name}'! Options: ['squared_error', 'binary_cross_entropy', 'multinomial_cross_entropy']"
         )
+    
+def get_grad_batch(name, n_class=None):
+    if name == "squared_error":
+        return squared_error_gradient
+    elif name == "binary_cross_entropy":
+        return binary_cross_entropy_gradient
+    elif name == "multinomial_cross_entropy":
+        return lambda w, X, y: multinomial_cross_entropy_gradient(w, X, y, n_class)
+    else:
+        raise NotImplementedError
 
 
 class Objective:
@@ -53,15 +76,18 @@ class Objective:
         dataset=None,
         shift_cost=1.0,
         penalty=None,
+        autodiff=True,
     ):
         self.X = X
         self.y = y
         self.n, self.d = X.shape
         self.weight_function = weight_function
         self.loss = get_loss(loss, n_class=n_class)
+        self.grad_batch = get_grad_batch(loss, n_class=n_class)
         self.loss_name = loss
         self.n_class = n_class
         self.l2_reg = l2_reg
+        self.autodiff = autodiff
 
         # For logging.
         self.loss_name = loss
@@ -88,8 +114,34 @@ class Objective:
             if self.l2_reg and include_reg:
                 risk += 0.5 * self.l2_reg * torch.norm(w) ** 2 / self.n
             return risk
-
+        
     def get_batch_subgrad(self, w, idx=None, include_reg=True):
+        if self.autodiff:
+            return self.get_batch_subgrad_autodiff(w, idx=idx, include_reg=include_reg)
+        else:
+            return self.get_batch_subgrad_oracle(w, idx=idx, include_reg=include_reg)
+    
+    @torch.no_grad()
+    def get_batch_subgrad_oracle(self, w, idx=None, include_reg=True):
+        if idx is not None:
+            X, y = self.X[idx], self.y[idx]
+            sigmas = self.weight_function(len(X))
+        else:
+            X, y = self.X, self.y
+            sigmas = self.sigmas
+        sorted_losses, perm = torch.sort(self.loss(w, X, y), stable=True)
+        if self.penalty:
+            q = get_smooth_weights_sorted(
+                sorted_losses, sigmas, self.shift_cost, self.penalty
+            )
+        else:
+            q = sigmas
+        g = torch.matmul(q, self.grad_batch(w, X, y)[perm])
+        if self.l2_reg and include_reg:
+            g += self.l2_reg * w.detach() / self.n
+        return g
+
+    def get_batch_subgrad_autodiff(self, w, idx=None, include_reg=True):
         if idx is not None:
             X, y = self.X[idx], self.y[idx]
             sigmas = self.weight_function(len(X))
@@ -138,8 +190,12 @@ class Objective:
         with torch.no_grad():
             return (w - self.get_indiv_prox_loss(w, stepsize, i)) / stepsize
 
-    def get_indiv_grad(self, w):
-        raise NotImplementedError
+    @torch.no_grad()
+    def get_indiv_grad(self, w, X=None, y=None):
+        if not (X is None):
+            return self.grad_batch(w, X, y)
+        else:
+            return self.grad_batch(w, self.X, self.y)
 
     def get_model_cfg(self):
         return {

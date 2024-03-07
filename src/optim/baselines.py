@@ -161,74 +161,6 @@ class StochasticRegularizedDualAveraging(Optimizer):
         return self.epoch_len
 
 
-class LSVRG(Optimizer):
-    def __init__(self, objective, lr=0.01, uniform=False, seed=25, epoch_len=None):
-        super(LSVRG, self).__init__()
-        self.objective = objective
-        self.lr = lr
-        if objective.n_class:
-            self.weights = torch.zeros(
-                objective.n_class * self.objective.d,
-                requires_grad=True,
-                dtype=torch.float64,
-            )
-        else:
-            self.weights = torch.zeros(
-                self.objective.d, requires_grad=True, dtype=torch.float64
-            )
-        self.sigmas = self.objective.sigmas
-        self.rng = np.random.RandomState(seed)
-        self.uniform = uniform
-        if epoch_len:
-            self.epoch_len = epoch_len
-        else:
-            self.epoch_len = self.objective.n
-
-    def start_epoch(self):
-        losses = self.objective.get_indiv_loss(self.weights, with_grad=True)
-        sort, argsort = torch.sort(losses, stable=True)
-        risk = torch.dot(self.sigmas, sort)
-
-        self.subgrad_checkpt = torch.autograd.grad(outputs=risk, inputs=self.weights)[0]
-        self.argsort_checkpt = argsort
-        self.weights_checkpt = torch.clone(self.weights)
-
-    def step(self):
-        n = self.objective.n
-
-        if self.uniform:
-            i = torch.tensor([self.rng.randint(0, n)])
-            x = self.objective.X[i]
-            y = self.objective.y[i]
-        else:
-            i = torch.tensor([np.random.choice(n, p=self.sigmas)])
-            x = self.objective.X[self.argsort_checkpt[i]]
-            y = self.objective.y[self.argsort_checkpt[i]]
-
-        # Compute gradient at current iterate.
-        loss = self.objective.loss(self.weights, x, y)
-        g = torch.autograd.grad(outputs=loss, inputs=self.weights)[0]
-
-        # Compute gradient at previous checkpoint.
-        loss = self.objective.loss(self.weights_checkpt, x, y)
-        g_checkpt = torch.autograd.grad(outputs=loss, inputs=self.weights_checkpt)[0]
-
-        if self.uniform:
-            direction = n * self.sigmas[i] * (g - g_checkpt) + self.subgrad_checkpt
-        else:
-            direction = g - g_checkpt + self.subgrad_checkpt
-        if self.objective.l2_reg:
-            direction += self.objective.l2_reg * self.weights / n
-
-        self.weights = self.weights - self.lr * direction
-
-    def end_epoch(self):
-        pass
-
-    def get_epoch_len(self):
-        return self.epoch_len
-
-
 class SmoothedLSVRG(Optimizer):
     def __init__(
         self,
@@ -263,23 +195,37 @@ class SmoothedLSVRG(Optimizer):
         else:
             self.length_epoch = int(nb_passes * n)
         self.nb_checkpoints = 0
+        self.step_no = 0
 
     def start_epoch(self):
-        losses = self.objective.get_indiv_loss(self.weights, with_grad=True)
-        sorted_losses, self.argsort = torch.sort(losses, stable=True)
-        with torch.no_grad():
-            self.sigmas = get_smooth_weights_sorted(
-                sorted_losses, self.spectrum, self.smooth_coef, self.smoothing
-            )
-        risk = torch.dot(self.sigmas, sorted_losses)
+        # losses = self.objective.get_indiv_loss(self.weights, with_grad=True)
+        # sorted_losses, self.argsort = torch.sort(losses, stable=True)
+        # with torch.no_grad():
+        #     self.sigmas = get_smooth_weights_sorted(
+        #         sorted_losses, self.spectrum, self.smooth_coef, self.smoothing
+        #     )
+        # risk = torch.dot(self.sigmas, sorted_losses)
 
-        self.subgrad_checkpt = torch.autograd.grad(outputs=risk, inputs=self.weights)[0]
-        self.weights_checkpt = torch.clone(self.weights)
-        self.nb_checkpoints += 1
+        # self.subgrad_checkpt = torch.autograd.grad(outputs=risk, inputs=self.weights)[0]
+        # self.weights_checkpt = torch.clone(self.weights)
+        # self.nb_checkpoints += 1
+        pass
 
     @torch.no_grad()
     def step(self):
         n = self.objective.n
+
+        # start epoch
+        if self.step_no % n == 0:
+            losses = self.objective.get_indiv_loss(self.weights, with_grad=False)
+            sorted_losses, self.argsort = torch.sort(losses, stable=True)
+            with torch.no_grad():
+                self.sigmas = get_smooth_weights_sorted(
+                    sorted_losses, self.spectrum, self.smooth_coef, self.smoothing
+                )
+            self.subgrad_checkpt = self.objective.get_batch_subgrad(self.weights, include_reg=False)
+            self.weights_checkpt = torch.clone(self.weights)
+            self.nb_checkpoints += 1
 
         if self.uniform:
             i = torch.tensor([self.rng.randint(0, n)])
@@ -289,15 +235,17 @@ class SmoothedLSVRG(Optimizer):
         y = self.objective.y[self.argsort[i]]
 
         # Compute gradient at current iterate.
-        with torch.enable_grad():
-            loss = self.objective.loss(self.weights, x, y)
-            g = torch.autograd.grad(outputs=loss, inputs=self.weights)[0]
+        # with torch.enable_grad():
+        #     loss = self.objective.loss(self.weights, x, y)
+        #     g = torch.autograd.grad(outputs=loss, inputs=self.weights)[0]
 
-            # Compute gradient at previous checkpoint.
-            loss = self.objective.loss(self.weights_checkpt, x, y)
-            g_checkpt = torch.autograd.grad(outputs=loss, inputs=self.weights_checkpt)[
-                0
-            ]
+        #     # Compute gradient at previous checkpoint.
+        #     loss = self.objective.loss(self.weights_checkpt, x, y)
+        #     g_checkpt = torch.autograd.grad(outputs=loss, inputs=self.weights_checkpt)[
+        #         0
+        #     ]
+        g = self.objective.get_indiv_grad(self.weights, x, y).squeeze()
+        g_checkpt = self.objective.get_indiv_grad(self.weights_checkpt, x, y).squeeze()
 
         if self.uniform:
             direction = n * self.sigmas[i] * (g - g_checkpt) + self.subgrad_checkpt
@@ -316,6 +264,8 @@ class SmoothedLSVRG(Optimizer):
 
 
 class SaddleSAGA(Optimizer):
+
+    @torch.no_grad()
     def __init__(
         self,
         objective,
@@ -359,13 +309,15 @@ class SaddleSAGA(Optimizer):
         self.lam = self.sigmas[torch.argsort(torch.argsort(self.losses))]
         self.rho = self.lam.clone()
 
-        for i in range(n):
-            loss = self.objective.loss(
-                self.weights, self.objective.X[i, :], self.objective.y[i]
-            )
-            self.grad_table[i] = torch.autograd.grad(outputs=loss, inputs=self.weights)[
-                0
-            ]
+        # with torch.enable_grad():
+        #     for i in range(n):
+        #         loss = self.objective.loss(
+        #             self.weights, self.objective.X[i, :], self.objective.y[i]
+        #         )
+        #         self.grad_table[i] = torch.autograd.grad(outputs=loss, inputs=self.weights)[
+        #             0
+        #         ]
+        self.grad_table = self.objective.get_indiv_grad(self.weights)
         self.running_subgrad = torch.matmul(self.grad_table.T, self.rho)
 
         if epoch_len:
@@ -383,8 +335,10 @@ class SaddleSAGA(Optimizer):
         i = torch.tensor([self.rng_grad.randint(0, n)])
         x = self.objective.X[i]
         y = self.objective.y[i]
+        # loss = self.objective.loss(self.weights, x, y)
+        # g = torch.autograd.grad(outputs=loss, inputs=self.weights)[0]
         loss = self.objective.loss(self.weights, x, y)
-        g = torch.autograd.grad(outputs=loss, inputs=self.weights)[0]
+        g = self.objective.get_indiv_grad(self.weights, x, y).squeeze()
 
         # Compute gradient at from table.
         g_old = self.grad_table[i].reshape(-1)
