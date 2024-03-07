@@ -39,7 +39,7 @@ def load_dataset(dataset="yacht", test_size=0.2, data_path="data/"):
             data[:, : data.shape[1] - 1],
             data[:, data.shape[1] - 1],
         )
-    elif dataset in ["acsincome", "diabetes", "amazon", "iwildcam"]:
+    elif dataset in ["acsincome", "diabetes", "amazon"]:
         try:
             X_train = np.load(os.path.join(data_path, dataset, "X_train.npy"))
             y_train = np.load(os.path.join(data_path, dataset, "y_train.npy"))
@@ -53,7 +53,7 @@ def load_dataset(dataset="yacht", test_size=0.2, data_path="data/"):
         X_train = torch.tensor(X_train, dtype=torch.float64)
         X_test = torch.tensor(X_test, dtype=torch.float64)
 
-        if dataset in ["amazon", "iwildcam"]:
+        if dataset == "amazon":
             y_train = torch.tensor(y_train).long()
             y_test = torch.tensor(y_test).long()
         else:
@@ -61,17 +61,17 @@ def load_dataset(dataset="yacht", test_size=0.2, data_path="data/"):
             y_test = torch.tensor(y_test, dtype=torch.float64)
         return X_train, y_train, X_test, y_test
     elif dataset == "iwildcam":
-        X_train = np.load(os.path.join(data_path, dataset, "X_train.npy"))
-        y_train = np.load(os.path.join(data_path, dataset, "y_train.npy"))
-        X_test = np.load(os.path.join(data_path, dataset, "X_test.npy"))
-        y_test = np.load(os.path.join(data_path, dataset, "y_test.npy"))
+        X_train = np.load(os.path.join(data_path, "iwildcam/X_train.npy"))
+        y_train = torch.tensor(np.load(os.path.join(data_path, "iwildcam/y_train.npy")))
+        X_val = np.load(os.path.join(data_path, "iwildcam/X_validation.npy"))
+        y_val = torch.tensor(
+            np.load(os.path.join(data_path, "iwildcam/y_validation.npy"))
+        )
 
-        X_train = torch.tensor(X_train, dtype=torch.float64)
-        y_train = torch.tensor(y_train, dtype=torch.float64)
-        X_test = torch.tensor(X_test, dtype=torch.float64)
-        y_test = torch.tensor(y_test, dtype=torch.float64)
-
-        return X_train, y_train, X_test, y_test
+        scaler = StandardScaler().fit(X_train)
+        X_train = torch.tensor(scaler.transform(X_train), dtype=torch.float64)
+        X_val = torch.tensor(scaler.transform(X_val), dtype=torch.float64)
+        return X_train, y_train, X_val, y_val
     elif dataset == "amazon":
         raise NotImplementedError
     elif dataset == "iwildcam_std":
