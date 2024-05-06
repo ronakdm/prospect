@@ -198,17 +198,6 @@ class SmoothedLSVRG(Optimizer):
         self.step_no = 0
 
     def start_epoch(self):
-        # losses = self.objective.get_indiv_loss(self.weights, with_grad=True)
-        # sorted_losses, self.argsort = torch.sort(losses, stable=True)
-        # with torch.no_grad():
-        #     self.sigmas = get_smooth_weights_sorted(
-        #         sorted_losses, self.spectrum, self.smooth_coef, self.smoothing
-        #     )
-        # risk = torch.dot(self.sigmas, sorted_losses)
-
-        # self.subgrad_checkpt = torch.autograd.grad(outputs=risk, inputs=self.weights)[0]
-        # self.weights_checkpt = torch.clone(self.weights)
-        # self.nb_checkpoints += 1
         pass
 
     @torch.no_grad()
@@ -235,15 +224,6 @@ class SmoothedLSVRG(Optimizer):
         y = self.objective.y[self.argsort[i]]
 
         # Compute gradient at current iterate.
-        # with torch.enable_grad():
-        #     loss = self.objective.loss(self.weights, x, y)
-        #     g = torch.autograd.grad(outputs=loss, inputs=self.weights)[0]
-
-        #     # Compute gradient at previous checkpoint.
-        #     loss = self.objective.loss(self.weights_checkpt, x, y)
-        #     g_checkpt = torch.autograd.grad(outputs=loss, inputs=self.weights_checkpt)[
-        #         0
-        #     ]
         g = self.objective.get_indiv_grad(self.weights, x, y).squeeze()
         g_checkpt = self.objective.get_indiv_grad(self.weights_checkpt, x, y).squeeze()
 
@@ -255,6 +235,7 @@ class SmoothedLSVRG(Optimizer):
             direction += self.objective.l2_reg * self.weights / n
 
         self.weights.copy_(self.weights - self.lr * direction)
+        self.step_no += 1
 
     def end_epoch(self):
         pass
