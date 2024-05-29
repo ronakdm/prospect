@@ -1,5 +1,5 @@
-# prospect
-Code and experiments for "Distributionally Robust Optimization with Bias and Variance Reduction".
+# Prospect
+Code and experiments for the paper ["Distributionally Robust Optimization with Bias and Variance Reduction"](https://openreview.net/pdf?id=TTrzgEZt9s) published in **ICLR 2024** (Spotlight).
 
 ## Abstract
 We consider the distributionally robust optimization (DRO) problem with spectral risk-based uncertainty set and $f$-divergence penalty. This formulation includes common risk-sensitive learning objectives such as regularized condition value-at-risk (CVaR) and average top $k$ loss. We present Prospect, a stochastic gradient-based algorithm that only requires tuning a single learning rate hyperparameter, and prove that it enjoys linear convergence for smooth regularized losses. This contrasts with previous algorithms that either require tuning multiple hyperparameters or potentially fail to converge due to biased gradient estimates or inadequate regularization. Empirically, we show that Prospect can converge 2-3 times faster than baselines such as stochastic gradient and stochastic saddle-point methods on distribution shift and fairness benchmarks spanning tabular, vision, and language domains.
@@ -41,3 +41,24 @@ After completing all of the above steps, see `tutorial.ipynb` for a walkthrough 
 ## Reproducing Figures from the Paper
 
 The figures from the main text, namely the experiments on tabular regression, fairness benchmarks, and text/image distribution shift benchmarks can be reproduced by running through the notebooks `regression.ipynb`, `fairness.ipynb`, `amazon.ipynb`, and `iwildcam.ipynb`, respectively.
+
+## References
+If you found this repository useful, please consider citing the following papers:
+
+```
+@inproceedings{mehta2024distributionally,
+  title={{Distributionally Robust Optimization with Bias and Variance Reduction}},
+  author={Mehta, Ronak and Roulet, Vincent and Pillutla, Krishna and Harchaoui, Zaid},
+  booktitle={ICLR},
+  year={2024}
+}
+
+@inproceedings{mehta2023stochastic,
+  title={{Stochastic Optimization for Spectral Risk Measures}},
+  author={Mehta, Ronak and Roulet, Vincent and Pillutla, Krishna and Liu, Lang and Harchaoui, Zaid},
+  booktitle={AISTATS},
+  pages={10112--10159},
+  year={2023},
+}
+
+```
