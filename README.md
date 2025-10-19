@@ -29,8 +29,8 @@ pip3 install torch --index-url https://download.pytorch.org/whl/cu118
 
 Of the nine datasets used in the paper, five (`yacht`, `energy`, `concrete`, `kin8nm`, `power`) are downloaded automatically when the are loaded (see `tutorial.ipynb`). The `iwildcam` dataset requires a larger amount of processing to reproduce fully, and the preprocessed version of this dataset is already included in the `data` folder. The fairness benchmark datasets `acsincome` and `diabetes` can be prepared by running:
 ```
-scripts/download_acsincome.py
-scripts/download_diabetes.py
+python scripts/download_acsincome.py
+python scripts/download_diabetes.py
 ```
 Finally, reproducing the `amazon` dataset requires fine-tuning a BERT model to produce frozen feature representations. This can be done by running through the entirety of the `download_amazon.ipynb` notebook. A preprocessed version already exists in the `data/amazon` folder.
 
