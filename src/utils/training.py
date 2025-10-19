@@ -29,12 +29,12 @@ FAIL_CODE = -1
 class OptimizationError(RuntimeError):
     pass
 
-
-def train_model(optimizer, val_objective, n_epochs):
+def train_model(optimizer, val_objective, n_epochs, save_iters=False):
     epoch_len = optimizer.get_epoch_len()
     metrics = [compute_metrics(-1, optimizer, val_objective, 0.0)]
     init_loss = metrics[0]["train_loss"]
 
+    iterates = []
     for epoch in tqdm(range(n_epochs)):
         tic = time.time()
         optimizer.start_epoch()
@@ -42,6 +42,8 @@ def train_model(optimizer, val_objective, n_epochs):
             optimizer.step()
         optimizer.end_epoch()
         toc = time.time()
+        if save_iters:
+            iterates.append(optimizer.weights.clone())
 
         # Logging.
         metrics.append(compute_metrics(epoch, optimizer, val_objective, toc - tic))
@@ -54,6 +56,8 @@ def train_model(optimizer, val_objective, n_epochs):
         "weights": optimizer.weights,
         "metrics": pd.DataFrame(metrics),
     }
+    if save_iters:
+        return result, iterates
     return result
 
 
